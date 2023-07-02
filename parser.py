@@ -80,10 +80,37 @@ def pars_manga_for_chapters(url):
         download_chapter(chapterUrl, directory_for_image_from_chapter)
 
 
-def main():
-    url = "https://trendymanga.com/manga/hollow-regalia"
+def pars_catalog_for_manga(url):
 
-    pars_manga_for_chapters(url)
+    options = webdriver.ChromeOptions()
+    options.add_argument("--start-maximized")
+    options.add_argument('--ignore-certificate-errors-spki-list')
+    options.add_argument('--ignore-ssl-errors')
+    browser = webdriver.Chrome(options=options)
+    browser.find_element
+
+    browser.get(url)
+
+    manga = browser.find_elements(
+        By.CLASS_NAME, 'src-components-TitleListElement-___styles-module__imageWrapper')
+
+    for manga_element in manga:
+        mangaUrl = manga_element.get_attribute('href')
+        pars_manga_for_chapters(mangaUrl)
+
+# инфу надо парсить в папку отдельную. преполагаю, что назвать её надо information_about_manga
+# че то типо такого
+# после парсинга инфы вызывать парсинг глав. главы скачаются уже дальше по цепочке.
+# парсинг инфы надо вызывать в парсинге манги. до парсинга глав.
+
+
+def pars_information_about_manga(url):
+    print("TODO")
+
+
+def main():
+    url = "https://trendymanga.com/top/day"
+    pars_catalog_for_manga(url)
 
 
 main()
