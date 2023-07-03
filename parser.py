@@ -109,7 +109,7 @@ def get_title_preview_page(url, path):
         file.write(r.content)
 
 
-def pars_manga_for_chapters(url, isInf=False):
+def pars_manga_for_chapters(url, isInf):
     """
     Парсит мангу по главам с указанного URL-адреса и вызывает методы для получения информации о манге,
     получения превью тайтла и загрузки глав.
@@ -178,7 +178,7 @@ def pars_catalog_for_manga(url):
 
     for manga_element in manga:
         mangaUrl = manga_element.get_attribute('href')
-        pars_manga_for_chapters(mangaUrl)
+        pars_manga_for_chapters(mangaUrl, False)
 
     browser.quit()
 
@@ -256,11 +256,9 @@ if args.catalog:
     pars_catalog_for_manga(args.url)
 elif args.manga:
     print("2")
-    pars_manga_for_chapters(args.url)
-
+    pars_manga_for_chapters(args.url, False)
 elif args.information:
     print("3")
     pars_manga_for_chapters(args.url, True)
-
 else:
     pars_catalog_for_manga(args.url)
