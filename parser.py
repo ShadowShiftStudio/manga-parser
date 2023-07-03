@@ -55,6 +55,28 @@ def download_chapter(url, chapter_dir):
         counter += 1
 
 
+def get_title_preview_page(url, path):
+
+    soup = get_html_code(url)
+    previews = soup.find(
+        class_='src-pages-TitleView-___styles-module__sidebar').find_all('img')
+
+    preview_url = []
+
+    for preview in previews:
+        if 'src' in preview.attrs:
+            src = preview['src']
+            preview_url.append(src)
+
+    r = requests.get(preview_url[0])
+    r.raise_for_status()
+
+    os.makedirs(path + '/' + "Preview")
+
+    with open(path + '/' + "Preview" + '/' + "preview.jpg", "wb") as file:
+        file.write(r.content)
+
+
 def pars_manga_for_chapters(url):
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
@@ -65,17 +87,20 @@ def pars_manga_for_chapters(url):
     browser.find_element
     directory_manga_name = url.split('/')[-1]
     create_directory(directory_manga_name)
-
+    create_directory(directory_manga_name + '/' + "Chapters")
     browser.get(url)
+
+    get_title_preview_page(url, directory_manga_name)
 
     chapters = browser.find_elements(
         By.CLASS_NAME, 'src-pages-TitleView-components-ChapterItem-___styles-module__chapter')
 
     for chapter in chapters:
         chapterUrl = chapter.get_attribute('href')
-        directory_chapter_name = directory_manga_name + '/' + \
-            chapterUrl.split('/')[-2] + '-' + chapterUrl.split('/')[-1]
-        directory_for_image_from_chapter = directory_manga_name + '/' + directory_chapter_name
+        directory_chapter_name = chapterUrl.split(
+            '/')[-2] + '-' + chapterUrl.split('/')[-1]
+        directory_for_image_from_chapter = directory_manga_name + \
+            '/' + 'Chapters' + '/' + directory_chapter_name
         create_directory(directory_for_image_from_chapter)
         download_chapter(chapterUrl, directory_for_image_from_chapter)
 
@@ -109,7 +134,7 @@ def pars_information_about_manga(url):
 
 
 def main():
-    url = "https://trendymanga.com/top/day"
+    url = "https://trendymanga.com/top/all-time"
     pars_catalog_for_manga(url)
 
 
