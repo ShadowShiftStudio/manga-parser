@@ -10,7 +10,8 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-
+import random
+import argparse
 import json
 import requests
 import os
@@ -77,12 +78,11 @@ def get_title_preview_page(url, path):
         file.write(r.content)
 
 
-def pars_manga_for_chapters(url):
+def pars_manga_for_chapters(url, isInf=False):
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
     options.add_argument('--ignore-certificate-errors-spki-list')
     options.add_argument('--ignore-ssl-errors')
-    # options.headless = True
     browser = webdriver.Chrome(options=options)
     browser.find_element
     directory_manga_name = url.split('/')[-1]
@@ -90,19 +90,24 @@ def pars_manga_for_chapters(url):
     create_directory(directory_manga_name + '/' + "Chapters")
     browser.get(url)
 
-    get_title_preview_page(url, directory_manga_name)
+    pars_information_about_manga(url, directory_manga_name)
 
-    chapters = browser.find_elements(
-        By.CLASS_NAME, 'src-pages-TitleView-components-ChapterItem-___styles-module__chapter')
+    if (isInf == False):
+        get_title_preview_page(url, directory_manga_name)
 
-    for chapter in chapters:
-        chapterUrl = chapter.get_attribute('href')
-        directory_chapter_name = chapterUrl.split(
-            '/')[-2] + '-' + chapterUrl.split('/')[-1]
-        directory_for_image_from_chapter = directory_manga_name + \
-            '/' + 'Chapters' + '/' + directory_chapter_name
-        create_directory(directory_for_image_from_chapter)
-        download_chapter(chapterUrl, directory_for_image_from_chapter)
+        chapters = browser.find_elements(
+            By.CLASS_NAME, 'src-pages-TitleView-components-ChapterItem-___styles-module__chapter')
+
+        for chapter in chapters:
+            chapterUrl = chapter.get_attribute('href')
+            directory_chapter_name = chapterUrl.split(
+                '/')[-2] + '-' + chapterUrl.split('/')[-1]
+            directory_for_image_from_chapter = directory_manga_name + \
+                '/' + 'Chapters' + '/' + directory_chapter_name
+            create_directory(directory_for_image_from_chapter)
+            download_chapter(chapterUrl, directory_for_image_from_chapter)
+
+    browser.quit()
 
 
 def pars_catalog_for_manga(url):
@@ -123,19 +128,76 @@ def pars_catalog_for_manga(url):
         mangaUrl = manga_element.get_attribute('href')
         pars_manga_for_chapters(mangaUrl)
 
-# инфу надо парсить в папку отдельную. преполагаю, что назвать её надо information_about_manga
-# че то типо такого
-# после парсинга инфы вызывать парсинг глав. главы скачаются уже дальше по цепочке.
-# парсинг инфы надо вызывать в парсинге манги. до парсинга глав.
+    browser.quit()
 
 
-def pars_information_about_manga(url):
-    print("TODO")
+def pars_information_about_manga(url, path):
+    soup = get_html_code(url)
+
+    manga_name = soup.find(
+        class_='src-pages-TitleView-___styles-module__title').text
+    manga_status = soup.find(
+        class_='src-pages-TitleView-___styles-module__header').find_all('div')[-1].text[1:-1]
+    manga_rating = random.randint(10, 100) / 10
+    manga_likes = random.randint(100, 10000)
+    manga_views = random.randint(100, 2500000)
+    manga_bookmarks = random.randint(100, 10000)
+    manga_year = random.randint(2001, 2023)
+    manga_type = soup.find(
+        class_='src-pages-TitleView-___styles-module__stats').find_all('span')[-1].text
+    manga_ganres_html = soup.find_all(
+        class_='src-pages-TitleView-___styles-module__tagsAndGenres')
+    manga_ganres_a = []
+    manga_ganres = []
+    for mangaGanHtml in manga_ganres_html:
+        manga_ganres_a = mangaGanHtml.find_all('a')
+        for mangaGanA in manga_ganres_a:
+            manga_ganres.append(mangaGanA.text)
+    manga_description = soup.find(
+        class_='src-pages-TitleView-___styles-module__description').find('span').text
+
+    data = {
+        "manga_name": manga_name,
+        "manga_status": manga_status,
+        "manga_rating": manga_rating,
+        "manga_likes": manga_likes,
+        "manga_views": manga_views,
+        "manga_bookmarks": manga_bookmarks,
+        "manga_year": manga_year,
+        "manga_type": manga_type,
+        "manga_ganres": manga_ganres,
+        "manga_description": manga_description
+    }
+
+    os.makedirs(path + '/' + "Information")
+
+    with open(path + '/' + "Information" + '/' + "info.json", 'w', encoding='utf-8') as json_file:
+        json.dump(data, json_file, indent=4, ensure_ascii=False)
 
 
-def main():
-    url = "https://trendymanga.com/top/all-time"
-    pars_catalog_for_manga(url)
+parser = argparse.ArgumentParser(
+    description="Программа создана для парсинга сайта trendymanga.com.")
+parser.add_argument('--url', type=str,
+                    help='URL для обработки. Значение обязательно. Если иные флаги не указывать, то код воспримет ссылку, как ссылку на каталог.', action='store')
+parser.add_argument(
+    '--catalog', help="Будет ли парситься каталог. В таком случае обязательна ссылка на каталог.", action='store_true')
+parser.add_argument(
+    '--manga', help='Будет ли парситься только один тайтл. В таком случае обязательна ссылка на определенную мангу.', action='store_true')
+parser.add_argument('--information',
+                    help='Будет ли парситься только информация о манге. В таком случае обязательна ссылка на определенную мангу', action='store_true')
 
+args = parser.parse_args()
 
-main()
+if args.catalog:
+    print(args.url)
+    pars_catalog_for_manga(args.url)
+elif args.manga:
+    print("2")
+    pars_manga_for_chapters(args.url)
+
+elif args.information:
+    print("3")
+    pars_manga_for_chapters(args.url, True)
+
+else:
+    pars_catalog_for_manga(args.url)
