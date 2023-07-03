@@ -3,19 +3,15 @@ import os
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from seleniumrequests import Chrome
-from selenium.webdriver.common.keys import Keys
-import time
 from bs4 import BeautifulSoup
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 import random
 import argparse
 import json
 import requests
 import os
-import re
+from tqdm import tqdm
+
+manga_n = ""
 
 
 def get_html_code(url):
@@ -108,6 +104,8 @@ def get_title_preview_page(url, path):
     with open(path + '/' + "Preview" + '/' + "preview.jpg", "wb") as file:
         file.write(r.content)
 
+    print("Preview " + path + " done")
+
 
 def pars_manga_for_chapters(url, isInf):
     """
@@ -140,8 +138,9 @@ def pars_manga_for_chapters(url, isInf):
 
         chapters = browser.find_elements(
             By.CLASS_NAME, 'src-pages-TitleView-components-ChapterItem-___styles-module__chapter')
+        chapter_count = len(chapters)
 
-        for chapter in chapters:
+        for index, chapter in enumerate(tqdm(chapters, desc=directory_manga_name, leave=True)):
             chapterUrl = chapter.get_attribute('href')
             directory_chapter_name = chapterUrl.split(
                 '/')[-2] + '-' + chapterUrl.split('/')[-1]
@@ -149,6 +148,7 @@ def pars_manga_for_chapters(url, isInf):
                 '/' + 'Chapters' + '/' + directory_chapter_name
             create_directory(directory_for_image_from_chapter)
             download_chapter(chapterUrl, directory_for_image_from_chapter)
+            tqdm.write(f"Chapter {index+1}/{chapter_count} downloaded")
 
     browser.quit()
 
@@ -236,6 +236,8 @@ def pars_information_about_manga(url, path):
 
     with open(path + '/' + "Information" + '/' + "info.json", 'w', encoding='utf-8') as json_file:
         json.dump(data, json_file, indent=4, ensure_ascii=False)
+
+    print("Information about " + path + " done")
 
 
 parser = argparse.ArgumentParser(
