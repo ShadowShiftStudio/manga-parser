@@ -252,13 +252,10 @@ parser.add_argument('--information',
 args = parser.parse_args()
 
 if args.catalog:
-    print(args.url)
     pars_catalog_for_manga(args.url)
 elif args.manga:
-    print("2")
     pars_manga_for_chapters(args.url, False)
 elif args.information:
-    print("3")
     pars_manga_for_chapters(args.url, True)
 else:
     pars_catalog_for_manga(args.url)

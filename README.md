@@ -12,15 +12,20 @@
     selenium-requests
 
 Вы можете установить эти зависимости, выполнив следующую команду:
+
 ```
 pip install requests beautifulsoup4 selenium selenium-requests
 ```
+
 Также для работы программы требуется установка Chrome WebDriver в соответствии с версией вашего браузера Chrome.
 [Chrome WebDriver](https://sites.google.com/a/chromium.org/chromedriver/downloads).
 
 ## Использование
+
 Вы можете использовать эту программу с помощью командной строки и указывать различные флаги в зависимости от ваших потребностей.
+
 ### Флаги
+
 Программа имеет следующие флаги:
 
     `--url` (обязательный): URL-адрес для обработки. Если не указаны другие флаги, программа будет считать ссылку на каталог.
@@ -29,16 +34,22 @@ pip install requests beautifulsoup4 selenium selenium-requests
     `--information`: Флаг, указывающий, что нужно парсить только информацию о манге. В этом случае необходима ссылка на определенную мангу.
 
 ## Примеры использования
+
 ### Будет парситься каталог сайта.
+
 ```
 python program.py --url https://www.trendymanga.com/catalog
 python program.py --url https://www.trendymanga.com/catalog --catalog
 ```
+
 ### Будет парситься информация о манге (жанры, описание и т.д.).
+
 ```
 python program.py --url https://trendymanga.com/manga/junket-bunk --information
 ```
+
 ### Будет парситься указанная манга.
+
 ```
 python program.py --url https://trendymanga.com/manga/junket-bunk --manga
 ```
