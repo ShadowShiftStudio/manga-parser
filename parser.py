@@ -19,6 +19,16 @@ import re
 
 
 def get_html_code(url):
+    """
+    Возвращает HTML-код указанного URL-адреса в виде объекта BeautifulSoup.
+
+    Аргументы:
+    url (str): URL-адрес страницы, для которой необходимо получить HTML-код.
+
+    Возвращает:
+    soup (BeautifulSoup): Объект BeautifulSoup, содержащий HTML-код страницы.
+    """
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.87 Safari/537.36"
     }
@@ -33,6 +43,17 @@ def create_directory(str):
 
 
 def download_chapter(url, chapter_dir):
+    """
+    Загружает главу манги с указанного URL-адреса и сохраняет изображения главы в указанную директорию.
+
+    Аргументы:
+    url (str): URL-адрес страницы с главой манги.
+    chapter_dir (str): Путь к директории для сохранения изображений главы.
+
+    Возвращает:
+    None
+    """
+
     soup = get_html_code(url)
     all_image_in_chapter = soup.find(
         class_='src-pages-ChapterView-___styles-module__pages').find_all('img')
@@ -57,6 +78,16 @@ def download_chapter(url, chapter_dir):
 
 
 def get_title_preview_page(url, path):
+    """
+    Получает превью тайтла манги с указанного URL-адреса и сохраняет его в указанную директорию.
+
+    Аргументы:
+    url (str): URL-адрес страницы с мангой.
+    path (str): Путь к директории для сохранения превью.
+
+    Возвращает:
+    None
+    """
 
     soup = get_html_code(url)
     previews = soup.find(
@@ -79,6 +110,18 @@ def get_title_preview_page(url, path):
 
 
 def pars_manga_for_chapters(url, isInf=False):
+    """
+    Парсит мангу по главам с указанного URL-адреса и вызывает методы для получения информации о манге,
+    получения превью тайтла и загрузки глав.
+
+    Аргументы:
+    url (str): URL-адрес страницы с мангой.
+    isInf (bool, по умолчанию False): Флаг, указывающий, нужно ли также получить информацию о манге.
+
+    Возвращает:
+    None
+    """
+
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
     options.add_argument('--ignore-certificate-errors-spki-list')
@@ -111,6 +154,15 @@ def pars_manga_for_chapters(url, isInf=False):
 
 
 def pars_catalog_for_manga(url):
+    """
+    Парсит каталог манги с указанного URL-адреса и вызывает метод для парсинга манги по главам.
+
+    Аргументы:
+    url (str): URL-адрес страницы с каталогом манги.
+
+    Возвращает:
+    None
+    """
 
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
@@ -132,6 +184,17 @@ def pars_catalog_for_manga(url):
 
 
 def pars_information_about_manga(url, path):
+    """
+    Парсит информацию о манге с указанного URL-адреса и сохраняет в JSON-файл.
+
+    Аргументы:
+    url (str): URL-адрес страницы с информацией о манге.\n
+    path (str): Путь к директории, в которую будет сохранен JSON-файл.
+
+    Возвращает:
+    None
+    """
+
     soup = get_html_code(url)
 
     manga_name = soup.find(
