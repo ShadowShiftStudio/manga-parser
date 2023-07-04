@@ -11,6 +11,7 @@ import requests
 import os
 from tqdm import tqdm
 
+
 def get_html_code(url):
     """
     Возвращает HTML-код указанного URL-адреса в виде объекта BeautifulSoup.
@@ -26,7 +27,7 @@ def get_html_code(url):
         "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.87 Safari/537.36"
     }
 
-    r = requests.get(url, timeout=30, headers=headers, )
+    r = requests.get(url, timeout=50, headers=headers, )
     soup = BeautifulSoup(r.content, "html.parser")
     return soup
 
@@ -122,7 +123,7 @@ def pars_manga_for_chapters(url, isInf):
     options.add_argument('--ignore-certificate-errors-spki-list')
     options.add_argument('--ignore-ssl-errors')
     browser = webdriver.Chrome(options=options)
-    
+
     directory_manga_name = url.split('/')[-1]
     create_directory(directory_manga_name)
     create_directory(directory_manga_name + '/' + "Chapters")
@@ -135,6 +136,9 @@ def pars_manga_for_chapters(url, isInf):
 
         chaptersLinks = get_chapters_links(browser)
 
+        if (len(chaptersLinks) > 17):
+            chaptersLinks.remove(chaptersLinks[-1])
+
         chapter_count = len(chaptersLinks)
 
         for index, chapter in enumerate(tqdm(chaptersLinks, desc=directory_manga_name, leave=True)):
@@ -146,8 +150,6 @@ def pars_manga_for_chapters(url, isInf):
             create_directory(directory_for_image_from_chapter)
             download_chapter(chapterUrl, directory_for_image_from_chapter)
             tqdm.write(f"Chapter {index+1}/{chapter_count} downloaded")
-
-
 
     browser.quit()
 
@@ -191,7 +193,8 @@ def get_chapters_links(browser):
     chaptersLinks (list): Объект list, содержащий URL глав манги.
     """
 
-    chaptersCount = int(browser.find_element(By.CLASS_NAME, 'src-pages-TitleView-___styles-module__chapters').find_element(By.CLASS_NAME, 'src-pages-TitleView-___styles-module__title').text[7:-1])
+    chaptersCount = int(browser.find_element(By.CLASS_NAME, 'src-pages-TitleView-___styles-module__chapters')
+                        .find_element(By.CLASS_NAME, 'src-pages-TitleView-___styles-module__title').text[7:-1])
     chaptersLinks = []
 
     while (True):
@@ -199,10 +202,13 @@ def get_chapters_links(browser):
             By.CLASS_NAME, 'src-pages-TitleView-components-ChapterItem-___styles-module__chapter')
 
         for chapter in buffer:
-            if (len(chaptersLinks) == chaptersCount): return chaptersLinks 
+            if (len(chaptersLinks) == chaptersCount):
+                return chaptersLinks
             chaptersLinks.append(chapter.get_attribute('href'))
-        
-        browser.execute_script("document.querySelector('div.src-pages-TitleView-___styles-module__list').scrollBy(0, 2060);")
+
+        browser.execute_script(
+            "document.querySelector('div.src-pages-TitleView-___styles-module__list').scrollBy(0, 2060);")
+
 
 def pars_catalog_for_manga(url):
     """
