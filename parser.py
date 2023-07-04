@@ -151,6 +151,35 @@ def pars_manga_for_chapters(url, isInf):
 
     browser.quit()
 
+def get_bookmarks_categories(browser):
+    bookmarksCategoriesButton = browser.find_element(By.XPATH, '//button[@class="Button_button__JOS9_ Button_button__JOS9_ Button_text__LI0qb Button_text-size-small__kYaDZ"]')
+    bookmarksCategoriesButton.click()
+    return browser.find_elements(By.XPATH, '//ul[@class="Menu_menuRoot__Yfa0u"]//*')
+
+def pars_profile_bookmarks(url):
+    urlToBookmars = f"{url}/bookmarks"
+    
+    options = webdriver.ChromeOptions()
+    options.add_argument("--start-maximized")
+    options.add_argument('--ignore-certificate-errors-spki-list')
+    options.add_argument('--ignore-ssl-errors')
+    browser = webdriver.Chrome(options=options)
+
+    browser.get(urlToBookmars)
+    titles = []
+
+    for i in range(0, 6):
+        bookmarksCategories = get_bookmarks_categories(browser)
+        bookmarkCategoryName = bookmarksCategories[i].text
+        bookmarksCategories[i].click()
+        titlesList = [title.get_attribute("title") for title in browser.find_elements(By.XPATH, '//a[@class="Vertical_card__Sxft_"]')]
+        titles.append((bookmarkCategoryName, titlesList))
+
+    os.makedirs("Bookmarks")
+
+    with open("./Bookmarks/bookmarks.json", 'w', encoding='utf-8') as json_file:
+        json.dump(titles, json_file, indent=4, ensure_ascii=False)
+
 def get_chapters_links(browser):
     """
     Парсит URL глав манги. 
@@ -271,6 +300,8 @@ parser.add_argument(
     '--manga', help='Будет ли парситься только один тайтл. В таком случае обязательна ссылка на определенную мангу.', action='store_true')
 parser.add_argument('--information',
                     help='Будет ли парситься только информация о манге. В таком случае обязательна ссылка на определенную мангу', action='store_true')
+parser.add_argument('--bookmarks',
+                    help='Парсинг закладок из профиля с сайта remanga.org. Обязательна ссылка на профиль', action='store_true')
 
 args = parser.parse_args()
 
@@ -280,5 +311,7 @@ elif args.manga:
     pars_manga_for_chapters(args.url, False)
 elif args.information:
     pars_manga_for_chapters(args.url, True)
+elif args.bookmarks:
+    pars_profile_bookmarks(args.url)
 else:
     pars_catalog_for_manga(args.url)
